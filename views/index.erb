@@ -1,0 +1,65 @@
+<html>
+	<head>
+		<title>unshorten</title>
+		<style type="text/css">
+			body {
+				padding: 40px;
+				font-family: helvetica, sans-serif;
+			}
+
+			a, input {
+			  font-size: 1.3em;
+			}
+		</style>
+	</head>
+	<body>
+		<form id="f" action="#" onsubmit="return false;">
+			<input id="url" type="text" size="40">
+			<input type="submit" value="unshorten">
+			<p id="result"></p>
+		</form>
+
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/prototype/1.6.0.2/prototype.js"></script>
+		<script type="text/javascript">
+			var Endpoint = new function() {
+				var RESOLVER_URL = 'http://almaer.com/endpoint/resolver.php';
+				var RESOLVER_CALLBACK = '__Endpoint_resolve';
+
+				var count = 0;
+
+				var append = function(url) {
+					var appender = document.createElement('script');
+					appender.src = url;
+					appender.type = 'text/javascript';
+					document.getElementsByTagName('body')[0].appendChild(appender);
+				}
+
+				return {
+					resolve: function(url, userCallback) {
+						var serverCallback = RESOLVER_CALLBACK + (count++);
+						var serverUrl = RESOLVER_URL
+									  + '?url=' + url
+									  + '&callback=' + serverCallback;
+
+						window[serverCallback] = userCallback;
+						append(serverUrl);
+					},
+
+					isRedirecting: function(newurl, originalurl) {
+						return (newurl != '') && (newurl != originalurl);
+					}
+				};
+			};
+
+			$('f').observe('submit', function() {
+				Endpoint.resolve($F('url'), function(result, original) {
+					$('result').update('<a href="' + result + '">' + result + '</a>');
+				});
+
+				return false;
+			});
+
+			$('url').focus();
+		</script>
+	</body>
+</html>
